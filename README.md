@@ -53,7 +53,7 @@ After installation the `losslessaudio-lens` command is available globally.
 ### Option 2 — Run from source
 
 ```bash
-git clone https://github.com/your-username/lossless-audio-lens.git
+git clone https://github.com/balansp/losslessaudio-lens
 cd lossless-audio-lens
 npm install
 node index.js <songsDir>

@@ -10,7 +10,7 @@
     "lens",
     "detect",
     "genuine",
-    "fake",
+    "fake"
   ],
   "type": "module",
   "main": "index.js",
