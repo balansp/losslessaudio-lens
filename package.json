@@ -1,5 +1,5 @@
 {
-  "name": "Lossless Audio Lens",
+  "name": "losslessaudio-lens",
   "version": "1.0.0",
   "description": "Detect genuine vs fake hi-res lossless audio files",
   "author": "Balan S P",
@@ -15,7 +15,7 @@
   "type": "module",
   "main": "index.js",
   "bin": {
-    "losslessaudio-lens": "./index.js"
+    "losslessaudio-lens": "index.js"
   },
   "scripts": {
     "start": "node index.js"
