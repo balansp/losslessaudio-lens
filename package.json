@@ -1,0 +1,30 @@
+{
+  "name": "Lossless Audio Lens",
+  "version": "1.0.0",
+  "description": "Detect genuine vs fake hi-res lossless audio files",
+  "author": "Balan S P",
+  "license": "MIT",
+  "keywords": [
+    "lossless",
+    "audio",
+    "lens",
+    "detect",
+    "genuine",
+    "fake",
+  ],
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "losslessaudio-lens": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "commander": "^12.0.0",
+    "music-metadata": "^11.12.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
