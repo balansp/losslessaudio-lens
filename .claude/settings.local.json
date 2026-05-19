@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ffmpeg -version)",
+      "Bash(npm install *)",
+      "Bash(npm audit *)",
+      "Bash(chmod +x /Users/balansp/Documents/Projects/Personal/FLAC-Analyser/index.js)",
+      "Bash(node /Users/balansp/Documents/Projects/Personal/FLAC-Analyser/index.js --help)",
+      "Read(//private/tmp/**)",
+      "Bash(mkdir -p fake_songs/MovieA)",
+      "Bash(ffmpeg -hide_banner -loglevel error -f lavfi -i \"sine=frequency=440:sample_rate=96000:duration=10\" -ar 96000 -acodec flac fake_songs/MovieA/track1.flac)",
+      "Bash(node /Users/balansp/Documents/Projects/Personal/FLAC-Analyser/index.js /tmp/fake_songs -o /tmp/test_report.csv)",
+      "Read(//tmp/**)",
+      "Bash(mkdir -p /tmp/fake_songs/MovieB)",
+      "Bash(ffmpeg -hide_banner -loglevel error -f lavfi -i \"anoisesrc=color=pink:sample_rate=96000:duration=15:amplitude=0.5\" -ar 96000 -sample_fmt s32 -acodec flac /tmp/fake_songs/MovieB/track1.flac)",
+      "Bash(git init *)",
+      "Bash(git remote *)",
+      "Bash(git branch *)",
+      "Bash(git add *)",
+      "Bash(git push *)",
+      "Bash(npm pkg *)",
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:medium.com)"
+    ]
+  }
+}

@@ -10,7 +10,7 @@ const program = new Command();
 program
   .name('losslessaudio-lens')
   .description('Detect genuine vs fake hi-res lossless audio files')
-  .argument('<songsDir>', 'Path to Songs folder containing movie subdirectories')
+  .argument('<songsDir>', 'Path to root folder (albums may be nested in subfolders)')
   .option('-o, --output <file>', 'Output CSV file path', 'report.csv')
   .action(async (songsDir, options) => {
     const absDir = path.resolve(songsDir);
@@ -25,11 +25,11 @@ program
     }
 
     if (movies.length === 0) {
-      console.log('No movie folders with audio files found.');
+      console.log('No album folders with audio files found.');
       process.exit(0);
     }
 
-    console.log(`Found ${movies.length} movie folder(s). Analysing one sample per folder...\n`);
+    console.log(`Found ${movies.length} album folder(s). Analysing one sample per folder...\n`);
 
     const results = [];
     for (const movie of movies) {

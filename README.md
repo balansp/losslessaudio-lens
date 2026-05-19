@@ -71,7 +71,7 @@ losslessaudio-lens <songsDir> [options]
 
 | Argument | Description |
 |---|---|
-| `<songsDir>` | Path to your Songs folder. Each sub-folder is treated as a separate movie/album |
+| `<songsDir>` | Path to your library root. Album folders are discovered at any depth (see folder structure below) |
 
 ### Options
 
@@ -89,19 +89,31 @@ losslessaudio-lens ~/Music/Movies -o ~/Desktop/report.csv
 
 ### Expected folder structure
 
+Albums can sit directly under the root, inside nested categories, or split across disc subfolders:
+
 ```
 Songs/
 ├── Interstellar/
 │   ├── 01 - Main Theme.flac
-│   ├── 02 - Docking.flac
-│   └── ...
-├── Dune/
-│   ├── 01 - Arrakis.flac
-│   └── ...
-└── ...
+│   └── 02 - Docking.flac
+├── Sci-Fi/
+│   └── Dune/
+│       └── 01 - Arrakis.flac
+└── Inception/
+    ├── Disc 1/
+    │   └── 01 - Opening.flac
+    └── Disc 2/
+        └── 05 - Ending.flac
 ```
 
-One file per folder is sampled and the verdict is applied to all tracks in that folder.
+The scanner walks the tree recursively:
+
+- **Top-level siblings** with audio (e.g. `Interstellar`, `Dune`) are separate albums.
+- **Single wrapper folders** (e.g. `Sci-Fi/Dune`) are descended into until tracks are found.
+- **Category folders** (`90s/Baasha`, `ARR/Bombay`) — each child album is scanned separately.
+- **Multi-disc layouts** (`Inception/Disc 1`, `Disc 2`) — folders named like `Disc 1` / `CD 2` are grouped as one album.
+
+One file per album folder is sampled and the verdict is applied to all tracks in that folder.
 
 ---
 
@@ -112,7 +124,7 @@ One file per folder is sampled and the verdict is applied to all tracks in that 
 ```
 Scanning: /Users/you/Music/Movies
 
-Found 3 movie folder(s). Analysing one sample per folder...
+Found 3 album folder(s). Analysing one sample per folder...
 
   [1/3] Interstellar → 01 - Main Theme.flac ... GENUINE
   [2/3] Dune         → 01 - Arrakis.flac    ... LIKELY_UPSCALED
