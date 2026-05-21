@@ -5,6 +5,14 @@ import { scanFolders } from './src/scanner.js';
 import { analyzeFile } from './src/analyzer.js';
 import { writeCSV } from './src/reporter.js';
 
+const VERDICT_LABEL = {
+  GENUINE: '\x1b[32mGENUINE\x1b[0m',
+  LIKELY_UPSCALED: '\x1b[33mLIKELY_UPSCALED\x1b[0m',
+  FAKE_TRANSCODED: '\x1b[31mFAKE_TRANSCODED\x1b[0m',
+  LIKELY_FAKE: '\x1b[31mLIKELY_FAKE\x1b[0m',
+  LOSSY: '\x1b[31mLOSSY\x1b[0m',
+};
+
 const program = new Command();
 
 program
@@ -12,13 +20,14 @@ program
   .description('Detect genuine vs fake hi-res lossless audio files')
   .argument('<songsDir>', 'Path to root folder (albums may be nested in subfolders)')
   .option('-o, --output <file>', 'Output CSV file path', 'report.csv')
+  .option('-a, --all', 'Analyze and report every audio file in each folder (not just one sample)')
   .action(async (songsDir, options) => {
     const absDir = path.resolve(songsDir);
     console.log(`Scanning: ${absDir}\n`);
 
     let movies;
     try {
-      movies = await scanFolders(absDir);
+      movies = await scanFolders(absDir, { allTracks: options.all });
     } catch (err) {
       console.error(`Error scanning directory: ${err.message}`);
       process.exit(1);
@@ -29,7 +38,14 @@ program
       process.exit(0);
     }
 
-    console.log(`Found ${movies.length} album folder(s). Analysing one sample per folder...\n`);
+    const albumCount = new Set(movies.map(m => m.name)).size;
+    if (options.all) {
+      console.log(
+        `Found ${albumCount} album folder(s), ${movies.length} audio file(s). Analysing every file...\n`,
+      );
+    } else {
+      console.log(`Found ${albumCount} album folder(s). Analysing one sample per folder...\n`);
+    }
 
     const results = [];
     for (const movie of movies) {
@@ -45,14 +61,7 @@ program
           totalTracks: movie.totalTracks,
           ...analysis,
         });
-        const verdictLabel = {
-          GENUINE: '\x1b[32mGENUINE\x1b[0m',
-          LIKELY_UPSCALED: '\x1b[33mLIKELY_UPSCALED\x1b[0m',
-          FAKE_TRANSCODED: '\x1b[31mFAKE_TRANSCODED\x1b[0m',
-          LIKELY_FAKE: '\x1b[31mLIKELY_FAKE\x1b[0m',
-          LOSSY: '\x1b[31mLOSSY\x1b[0m',
-        }[analysis.verdict] ?? analysis.verdict;
-        console.log(verdictLabel);
+        console.log(VERDICT_LABEL[analysis.verdict] ?? analysis.verdict);
       } catch (err) {
         console.log('\x1b[31mERROR\x1b[0m');
         console.error(`    ${err.message}`);
@@ -61,6 +70,7 @@ program
           file: path.basename(movie.sampleFile),
           totalTracks: movie.totalTracks,
           verdict: 'ERROR',
+          confidence: '',
           reason: err.message,
         });
       }

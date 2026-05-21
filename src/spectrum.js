@@ -131,6 +131,40 @@ export function findSpectralCutoff(powerSpectrum, binSize, sampleRate) {
   return loMusicBin * binSize;
 }
 
+function bandAverageDb(powerSpectrum, lowHz, highHz, binSize) {
+  const startBin = Math.max(0, Math.floor(lowHz / binSize));
+  const endBin = Math.min(powerSpectrum.length - 1, Math.floor(highHz / binSize));
+  if (startBin >= endBin) return -200;
+
+  let sum = 0;
+  for (let i = startBin; i <= endBin; i++) {
+    sum += Math.pow(10, powerSpectrum[i] / 10);
+  }
+  return 10 * Math.log10(sum / (endBin - startBin + 1));
+}
+
+/**
+ * Measure the sharpest high-frequency energy drop (MP3/AAC "brick wall").
+ * Returns drop in dB and the approximate wall frequency.
+ */
+export function measureBrickWall(powerSpectrum, binSize, sampleRate) {
+  const nyquist = sampleRate / 2;
+  let maxDropDb = 0;
+  let wallHz = 0;
+
+  for (let f = 10000; f < nyquist - 3500; f += 250) {
+    const below = bandAverageDb(powerSpectrum, f - 1800, f - 200, binSize);
+    const above = bandAverageDb(powerSpectrum, f + 400, f + 2200, binSize);
+    const drop = below - above;
+    if (drop > maxDropDb) {
+      maxDropDb = drop;
+      wallHz = f;
+    }
+  }
+
+  return { maxDropDb, wallHz };
+}
+
 /**
  * Estimate the noise floor by measuring average power in the upper-frequency band.
  * For genuine hi-res this band has natural room/instrument noise at very low levels.

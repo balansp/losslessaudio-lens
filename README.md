@@ -6,7 +6,13 @@ A command-line tool that analyses your hi-res audio library and tells you whethe
 
 ## How It Works
 
-Lossless Audio Lens extracts a 60-second PCM window from the middle of each audio file (skipping intros and silences), runs a spectral analysis via FFT, and compares the observed frequency content against what the file's claimed sample-rate and bit-depth should contain.
+Lossless Audio Lens extracts **2–3 short PCM windows** from different points in each track (via ffmpeg), runs **FFT spectral analysis** on each, and combines:
+
+- **Median spectral cutoff** — highest frequency with meaningful musical energy
+- **Brick-wall detection** — sharp dB drop typical of MP3/AAC encoders (not gradual mastering rolloff)
+- **Segment agreement** — inconsistent cutoffs across the track lower confidence
+
+Verdicts use cutoff **and** wall shape, which reduces false "fake" labels on genuinely rolled-off CD masters.
 
 | Verdict | Meaning |
 |---|---|
@@ -78,6 +84,7 @@ losslessaudio-lens <songsDir> [options]
 | Flag | Default | Description |
 |---|---|---|
 | `-o, --output <file>` | `report.csv` | Path for the output CSV report |
+| `-a, --all` | off | Analyze and report **every** audio file in each folder (one CSV row per file) |
 | `-h, --help` | | Show help |
 
 ### Example
@@ -85,6 +92,9 @@ losslessaudio-lens <songsDir> [options]
 ```bash
 # Scan ~/Music/Movies and save report to ~/Desktop/report.csv
 losslessaudio-lens ~/Music/Movies -o ~/Desktop/report.csv
+
+# Analyze every track (not just one sample per album)
+losslessaudio-lens ~/Music/Movies --all -o ~/Desktop/report-all.csv
 ```
 
 ### Expected folder structure
@@ -113,7 +123,7 @@ The scanner walks the tree recursively:
 - **Category folders** (`90s/Baasha`, `ARR/Bombay`) — each child album is scanned separately.
 - **Multi-disc layouts** (`Inception/Disc 1`, `Disc 2`) — folders named like `Disc 1` / `CD 2` are grouped as one album.
 
-One file per album folder is sampled and the verdict is applied to all tracks in that folder.
+By default, one file per album folder is sampled and the verdict is applied to all tracks in that folder. Use `--all` to analyse and list every file individually in the console output and CSV report.
 
 ---
 
@@ -149,8 +159,10 @@ Summary:
 | `bitDepth` | Bit depth |
 | `codec` | Audio codec detected |
 | `durationSec` | Track duration in seconds |
-| `spectralCutoffKhz` | Detected frequency cutoff in kHz |
-| `noiseFloorDb` | Estimated noise floor in dBFS |
+| `spectral_cutoff_khz` | Median detected frequency cutoff in kHz (across segments) |
+| `brick_wall_db` | Sharpest high-frequency drop in dB (encoder wall strength) |
+| `confidence` | `high` / `medium` / `low` — agreement between segments and wall clarity |
+| `noise_floor_db` | Estimated noise floor in dBFS |
 | `verdict` | Final verdict |
 | `reason` | Human-readable explanation |
 
@@ -174,9 +186,10 @@ lossless-audio-lens/
 
 ## Limitations
 
-- **One file sampled per folder** — if the first qualifying file in a folder is atypical, the verdict may not represent all tracks.
+- **One file sampled per folder (default)** — if the sampled file is atypical, the verdict may not represent all tracks. Use `--all` for per-file results.
 - **Requires ffmpeg** — the tool shells out to `ffmpeg` for PCM extraction; it must be installed and available in `PATH`.
-- **Heuristic analysis** — spectral cutoff detection is a strong signal but not infallible. Very heavily dithered 24-bit files or unusual mastering choices can occasionally produce edge-case results.
+- **Heuristic analysis** — not bit-exact proof of source. Brick-wall + multi-segment logic improves accuracy but cannot catch every upscale or lossless re-encode. Check `confidence` in the CSV when borderline.
+- **Slower per file** — up to 3 ffmpeg extractions per track for stability (use default single-album mode for large libraries).
 
 ---
 
